@@ -1,4 +1,4 @@
-🗣️ Minha Ferramenta de Voz e Texto de Quatro Painéis com IA 📝
+## 🗣️ Minha Ferramenta de Voz e Texto de Quatro Painéis com IA 📝
 
 Bem-vindo ao repositório da minha poderosa Ferramenta de Voz e Texto! Este projeto é uma solução interativa baseada na web que me permite converter voz para texto (STT), texto para voz (TTS), gerar ideias criativas e pesquisar artigos científicos, tudo em múltiplos idiomas e em tempo real.
 
