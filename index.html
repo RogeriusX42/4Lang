@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SCHOLAR.EXE: Ferramenta de Voz e Texto de Quatro Painéis</title>
+    <!-- Tailwind CSS CDN para um estilo bonito e responsivo -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Inter para um visual limpo e moderno -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Estilos personalizados para a fonte Inter e estilo geral do corpo */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Fundo azul-acinzentado claro */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px; /* Adiciona algum preenchimento para telas menores */
+            box-sizing: border-box; /* Inclui preenchimento na largura e altura total do elemento */
+        }
+
+        /* Animação personalizada para o ícone do microfone pulsante */
+        @keyframes pulse-red {
+            0%, 100% {
+                color: currentColor;
+                transform: scale(1);
+            }
+            50% {
+                color: #ef4444; /* vermelho-500 */
+                transform: scale(1.1);
+            }
+        }
+        .animate-pulse-red {
+            animation: pulse-red 1.5s infinite ease-in-out;
+        }
+
+        /* Estilo para links de pesquisa */
+        .research-links a {
+            color: #2563eb; /* blue-600 */
+            text-decoration: underline;
+            word-break: break-all; /* Quebra URLs longas */
+        }
+        .research-links a:hover {
+            color: #1d4ed8; /* blue-700 */
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <div class="container mx-auto p-6 bg-white shadow-xl rounded-xl max-w-4xl w-full transform transition-all duration-300 hover:scale-105">
+        <h1 class="text-4xl font-extrabold text-center text-gray-900 mb-8 drop-shadow-sm">
+            🗣️ Ferramenta de Voz e Texto de Quatro Painéis 📝
+        </h1>
+
+        <!-- Caixa de mensagem para feedback do utilizador (ex: erros, carregamento) -->
+        <div id="message-box" class="mt-4 mb-6 p-4 bg-yellow-100 border border-yellow-400 text-yellow-800 rounded-lg hidden" role="alert">
+            <!-- As mensagens aparecerão aqui -->
+        </div>
+
+        <!-- Grelha para quatro áreas de idioma -->
+        <div id="language-areas-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Área de Idioma 1 -->
+            <div class="language-area p-5 border border-gray-200 rounded-lg shadow-md bg-gray-50">
+                <label for="text-area-0" class="block text-lg font-semibold text-gray-700 mb-2">
+                    <span id="lang-label-0">Idioma 1</span>:
+                </label>
+                <select id="lang-select-0" class="w-full p-3 border-2 border-gray-300 rounded-lg bg-white focus:ring-4 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out shadow-sm cursor-pointer mb-4"></select>
+                <textarea id="text-area-0" class="w-full p-4 border-2 border-gray-300 rounded-lg focus:ring-4 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out resize-y min-h-[120px] shadow-sm" placeholder="Introduza texto ou grave voz..." aria-label="Área de texto do Painel 1"></textarea>
+                <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 mt-4">
+                    <button id="speak-button-0" class="flex-1 bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-bold py-3 px-4 rounded-lg shadow-md hover:from-blue-700 hover:to-indigo-800 focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-75 transition transform duration-200 ease-in-out hover:scale-105 active:scale-95">
+                        <span class="flex items-center justify-center">🔊 Falar</span>
+                    </button>
+                    <button id="record-button-0" class="flex-1 bg-gradient-to-r from-green-500 to-teal-600 text-white font-bold py-3 px-4 rounded-lg shadow-md hover:from-green-600 hover:to-teal-700 focus:outline-none focus:ring-4 focus:ring-green-500 focus:ring-opacity-75 transition transform duration-200 ease-in-out hover:scale-105 active:scale-95 flex items-center justify-center">
+                        <svg class="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clip-rule="evenodd"></path></svg>
+                        <span class="record-button-text">Gravar</span>
+                    </button>
+                </div>
+                <button id="stop-speak-button-0" class="w-full bg-gradient-to-r from-gray-500 to-gray-700 text-white font-bold py-3 px-4 rounded-lg shadow-md hover:from-gray-600 hover:to-gray-800 focus:outline-none focus:ring-4 focus:ring-gray-500 focus:ring-opacity-75 transition transform duration-200 ease-in-out hover:scale-105 active:scale-95 mt-2" disabled>
+                    ⏹️ Parar de Falar
+                </button>
+                <button id="llm-button-0" class="w-full bg-gradient-to-r from-purple-600 to-pink-700 text-white font-bold py-3 px-4 rounded-lg shadow-md hover:from-purple-700 hover:to-pink-800 focus:outline-none focus:ring-4 focus:ring-purple-500 focus:ring-opacity-75 transition transform duration-200 ease-in-out hover:scale-105 active:scale-95 mt-4">
+                    ✨ Gerar Ideias ✨
+                </button>
+                <button id="research-button-0" class="w-full bg-gradient-to-r from-orange-500 to-red-600 text-white font-bold py-3 px-4 rounded-lg shadow-md hover:from-orange-600 hover:to-red-700 focus:outline-none focus:ring-4 focus:ring-orange-500 focus:ring-opacity-75 transition transform duration-200 ease-in-out hover:scale-105 active:scale-95 mt-2">
+                    🔬 Pesquisar Artigos Científicos 🔬
+                </button>
+                <div id="research-links-0" class="research-links mt-4 p-3 bg-gray-100 rounded-lg border border-gray-200 text-sm text-gray-700">
+                    <!-- Links de pesquisa aparecerão aqui -->
+                </div>
+            </div>
+
+            <!-- Área de Idioma 2 -->
+            <div class="language-area p-5 border border-gray-200 rounded-lg shadow-md bg-gray-50">
+                <label for="text-area-1" class="block text-lg font-semibold text-gray-700 mb-2">
+                    <span id="lang-label-1">Idioma 2</span>:
+                </label>
+                <select id="lang-select-1" class="w-full p-3 border-2 border-gray-300 rounded-lg bg-white focus:ring-4 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out shadow-sm cursor-pointer mb-4"></select>
+                <textarea id="text-area-1" class="w-full p-4 border-2 border-gray-300 rounded-lg focus:ring-4 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out resize-y min-h-[120px] shadow-sm" placeholder="Introduza texto ou grave voz..." aria-label="Área de texto do Painel 2"></textarea>
+                <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 mt-4">
+                    <button id="speak-button-1" class="flex-1 bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-bold py-3 px-4 rounded-lg shadow-md hover:from-blue-700 hover:to-indigo-800 focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-75 transition transform duration-200 ease-in-out hover:scale-105 active:scale-95">
+                        <span class="flex items-center justify-center">🔊 Falar</span>
+                    </button>
+                    <button id="record-button-1" class="flex-1 bg-gradient-to-r from-green-500 to-teal-600 text-white font-bold py-3 px-4 rounded-lg shadow-md hover:from-green-600 hover:to-teal-700 focus:outline-none focus:ring-4 focus:ring-green-500 focus:ring-opacity-75 transition transform duration-200 ease-in-out hover:scale-105 active:scale-95 flex items-center justify-center">
+                        <svg class="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clip-rule="evenodd"></path></svg>
+                        <span class="record-button-text">Gravar</span>
+                    </button>
+                </div>
+                <button id="stop-speak-button-1" class="w-full bg-gradient-to-r from-gray-500 to-gray-700 text-white font-bold py-3 px-4 rounded-lg shadow-md hover:from-gray-600 hover:to-gray-800 focus:outline-none focus:ring-4 focus:ring-gray-500 focus:ring-opacity-75 transition transform duration-200 ease-in-out hover:scale-105 active:scale-95 mt-2" disabled>
+                    ⏹️ Parar de Falar
+                </button>
+                <button id="llm-button-1" class="w-full bg-gradient-to-r from-purple-600 to-pink-700 text-white font-bold py-3 px-4 rounded-lg shadow-md hover:from-purple-700 hover:to-pink-800 focus:outline-none focus:ring-4 focus:ring-purple-500 focus:ring-opacity-75 transition transform duration-200 ease-in-out hover:scale-105 active:scale-95 mt-4">
+                    ✨ Gerar Ideias ✨
+                </button>
+                <button id="research-button-1" class="w-full bg-gradient-to-r from-orange-500 to-red-600 text-white font-bold py-3 px-4 rounded-lg shadow-md hover:from-orange-600 hover:to-red-700 focus:outline-none focus:ring-4 focus:ring-orange-500 focus:ring-opacity-75 transition transform duration-200 ease-in-out hover:scale-105 active:scale-95 mt-2">
+                    🔬 Pesquisar Artigos Científicos 🔬
+                </button>
+                <div id="research-links-1" class="research-links mt-4 p-3 bg-gray-100 rounded-lg border border-gray-200 text-sm text-gray-700">
+                    <!-- Links de pesquisa aparecerão aqui -->
+                </div>
+            </div>
+
+            <!-- Área de Idioma 3 -->
+            <div class="language-area p-5 border border-gray-200 rounded-lg shadow-md bg-gray-50">
+                <label for="text-area-2" class="block text-lg font-semibold text-gray-700 mb-2">
+                    <span id="lang-label-2">Idioma 3</span>:
+                </label>
+                <select id="lang-select-2" class="w-full p-3 border-2 border-gray-300 rounded-lg bg-white focus:ring-4 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out shadow-sm cursor-pointer mb-4"></select>
+                <textarea id="text-area-2" class="w-full p-4 border-2 border-gray-300 rounded-lg focus:ring-4 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out resize-y min-h-[120px] shadow-sm" placeholder="Introduza texto ou grave voz..." aria-label="Área de texto do Painel 3"></textarea>
+                <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 mt-4">
+                    <button id="speak-button-2" class="flex-1 bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-bold py-3 px-4 rounded-lg shadow-md hover:from-blue-700 hover:to-indigo-800 focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-75 transition transform duration-200 ease-in-out hover:scale-105 active:scale-95">
+                        <span class="flex items-center justify-center">🔊 Falar</span>
+                    </button>
+                    <button id="record-button-2" class="flex-1 bg-gradient-to-r from-green-500 to-teal-600 text-white font-bold py-3 px-4 rounded-lg shadow-md hover:from-green-600 hover:to-teal-700 focus:outline-none focus:ring-4 focus:ring-green-500 focus:ring-opacity-75 transition transform duration-200 ease-in-out hover:scale-105 active:scale-95 flex items-center justify-center">
+                        <svg class="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clip-rule="evenodd"></path></svg>
+                        <span class="record-button-text">Gravar</span>
+                    </button>
+                </div>
+                <button id="stop-speak-button-2" class="w-full bg-gradient-to-r from-gray-500 to-gray-700 text-white font-bold py-3 px-4 rounded-lg shadow-md hover:from-gray-600 hover:to-gray-800 focus:outline-none focus:ring-4 focus:ring-gray-500 focus:ring-opacity-75 transition transform duration-200 ease-in-out hover:scale-105 active:scale-95 mt-2" disabled>
+                    ⏹️ Parar de Falar
+                </button>
+                <button id="llm-button-2" class="w-full bg-gradient-to-r from-purple-600 to-pink-700 text-white font-bold py-3 px-4 rounded-lg shadow-md hover:from-purple-700 hover:to-pink-800 focus:outline-none focus:ring-4 focus:ring-purple-500 focus:ring-opacity-75 transition transform duration-200 ease-in-out hover:scale-105 active:scale-95 mt-4">
+                    ✨ Gerar Ideias ✨
+                </button>
+                <button id="research-button-2" class="w-full bg-gradient-to-r from-orange-500 to-red-600 text-white font-bold py-3 px-4 rounded-lg shadow-md hover:from-orange-600 hover:to-red-700 focus:outline-none focus:ring-4 focus:ring-orange-500 focus:ring-opacity-75 transition transform duration-200 ease-in-out hover:scale-105 active:scale-95 mt-2">
+                    🔬 Pesquisar Artigos Científicos 🔬
+                </button>
+                <div id="research-links-2" class="research-links mt-4 p-3 bg-gray-100 rounded-lg border border-gray-200 text-sm text-gray-700">
+                    <!-- Links de pesquisa aparecerão aqui -->
+                </div>
+            </div>
+
+            <!-- Área de Idioma 4 -->
+            <div class="language-area p-5 border border-gray-200 rounded-lg shadow-md bg-gray-50">
+                <label for="text-area-3" class="block text-lg font-semibold text-gray-700 mb-2">
+                    <span id="lang-label-3">Idioma 4</span>:
+                </label>
+                <select id="lang-select-3" class="w-full p-3 border-2 border-gray-300 rounded-lg bg-white focus:ring-4 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out shadow-sm cursor-pointer mb-4"></select>
+                <textarea id="text-area-3" class="w-full p-4 border-2 border-gray-300 rounded-lg focus:ring-4 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out resize-y min-h-[120px] shadow-sm" placeholder="Introduza texto ou grave voz..." aria-label="Área de texto do Painel 4"></textarea>
+                <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 mt-4">
+                    <button id="speak-button-3" class="flex-1 bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-bold py-3 px-4 rounded-lg shadow-md hover:from-blue-700 hover:to-indigo-800 focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-75 transition transform duration-200 ease-in-out hover:scale-105 active:scale-95">
+                        <span class="flex items-center justify-center">🔊 Falar</span>
+                    </button>
+                    <button id="record-button-3" class="flex-1 bg-gradient-to-r from-green-500 to-teal-600 text-white font-bold py-3 px-4 rounded-lg shadow-md hover:from-green-600 hover:to-teal-700 focus:outline-none focus:ring-4 focus:ring-green-500 focus:ring-opacity-75 transition transform duration-200 ease-in-out hover:scale-105 active:scale-95 flex items-center justify-center">
+                        <svg class="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clip-rule="evenodd"></path></svg>
+                        <span class="record-button-text">Gravar</span>
+                    </button>
+                </div>
+                <button id="stop-speak-button-3" class="w-full bg-gradient-to-r from-gray-500 to-gray-700 text-white font-bold py-3 px-4 rounded-lg shadow-md hover:from-gray-600 hover:to-gray-800 focus:outline-none focus:ring-4 focus:ring-gray-500 focus:ring-opacity-75 transition transform duration-200 ease-in-out hover:scale-105 active:scale-95 mt-2" disabled>
+                    ⏹️ Parar de Falar
+                </button>
+                <button id="llm-button-3" class="w-full bg-gradient-to-r from-purple-600 to-pink-700 text-white font-bold py-3 px-4 rounded-lg shadow-md hover:from-purple-700 hover:to-pink-800 focus:outline-none focus:ring-4 focus:ring-purple-500 focus:ring-opacity-75 transition transform duration-200 ease-in-out hover:scale-105 active:scale-95 mt-4">
+                    ✨ Gerar Ideias ✨
+                </button>
+                <div id="research-links-3" class="research-links mt-4 p-3 bg-gray-100 rounded-lg border border-gray-200 text-sm text-gray-700">
+                    <!-- Links de pesquisa aparecerão aqui -->
+                </div>
+                <button id="research-button-3" class="w-full bg-gradient-to-r from-orange-500 to-red-600 text-white font-bold py-3 px-4 rounded-lg shadow-md hover:from-orange-600 hover:to-red-700 focus:outline-none focus:ring-4 focus:ring-orange-500 focus:ring-opacity-75 transition transform duration-200 ease-in-out hover:scale-105 active:scale-95 mt-2">
+                    🔬 Pesquisar Artigos Científicos 🔬
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Array para guardar referências aos elementos de cada área de idioma
+        const languageAreas = [];
+        for (let i = 0; i < 4; i++) {
+            languageAreas.push({
+                textArea: document.getElementById(`text-area-${i}`),
+                langSelect: document.getElementById(`lang-select-${i}`),
+                langLabel: document.getElementById(`lang-label-${i}`), // Referência à etiqueta dinâmica
+                speakButton: document.getElementById(`speak-button-${i}`),
+                recordButton: document.getElementById(`record-button-${i}`),
+                recordButtonText: document.querySelector(`#record-button-${i} .record-button-text`),
+                micIcon: document.querySelector(`#record-button-${i} svg`),
+                stopSpeakButton: document.getElementById(`stop-speak-button-${i}`), // Nova: referência ao botão de parar de falar
+                llmButton: document.getElementById(`llm-button-${i}`), // Referência ao botão LLM de ideias
+                researchButton: document.getElementById(`research-button-${i}`), // Referência ao botão de pesquisa
+                researchLinksDiv: document.getElementById(`research-links-${i}`), // Referência à div de links
+                currentVoice: null, // Para guardar o objeto de voz TTS selecionado
+                recognition: null, // Para guardar a instância de SpeechRecognition
+            });
+        }
+
+        const messageBox = document.getElementById('message-box');
+
+        // Idiomas suportados para STT/TTS (códigos ISO 639-1, com variantes comuns para melhor correspondência de voz)
+        const supportedLanguages = [
+            { code: 'en-US', name: 'English (US)', llm_prompt: 'Generate some ideas or expand the following English text:', llm_research_prompt: 'List 3 to 5 relevant research papers (title and URL) on the topic of the following English text. Format as a Markdown unordered list, with each item being `[Title](URL)`.' },
+            { code: 'en-GB', name: 'English (UK)', llm_prompt: 'Generate some ideas or expand the following English text:', llm_research_prompt: 'List 3 to 5 relevant research papers (title and URL) on the topic of the following English text. Format as a Markdown unordered list, with each item being `[Title](URL)`.' },
+            { code: 'es-ES', name: 'Spanish (Spain)', llm_prompt: 'Genera algunas ideas o expande el siguiente texto en español:', llm_research_prompt: 'Enumera de 3 a 5 artículos de investigación relevantes (título y URL) sobre el tema del siguiente texto en español. Formatea como una lista desordenada de Markdown, con cada elemento siendo `[Título](URL)`.' },
+            { code: 'fr-FR', name: 'French (France)', llm_prompt: 'Générer des idées ou développer le texto francês seguinte :', llm_research_prompt: 'Listez 3 à 5 articles de recherche pertinents (titre et URL) sur le sujet du texte français suivant. Formatez sous forme de liste non ordonnée Markdown, chaque élément étant `[Titre](URL)`.' },
+            { code: 'de-DE', name: 'Deutsch (Germany)', llm_prompt: 'Generieren Sie Ideen ou erweitern Sie den folgenden deutschen Text:', llm_research_prompt: 'Listen Sie 3 bis 5 relevante Forschungsarbeiten (Titel und URL) zum Thema des folgenden deutschen Textes auf. Formatieren Sie diese als ungeordnete Markdown-Liste, wobei jedes Element `[Titel](URL)` ist.' },
+            { code: 'it-IT', name: 'Italian (Italy)', llm_prompt: 'Genera alcune idee ou espandi il seguente testo italiano:', llm_research_prompt: 'Elenca da 3 a 5 articoli di ricerca pertinenti (título e URL) sull\'argomento del seguente testo italiano. Formatta come un elenco non ordinato Markdown, con ogni elemento che è `[Titolo](URL)`.' },
+            { code: 'pt-BR', name: 'Portuguese (Brazil)', llm_prompt: 'Gere algumas ideias ou expanda o seguinte texto em português do Brasil:', llm_research_prompt: 'Liste de 3 a 5 artigos de pesquisa relevantes (título e URL) sobre o tema do seguinte texto em português do Brasil. Formate como uma lista não ordenada de Markdown, com cada item sendo `[Título](URL)`.' },
+            { code: 'pt-PT', name: 'Portuguese (Portugal)', llm_prompt: 'Gere algumas ideias ou expanda o seguinte texto em português de Portugal:', llm_research_prompt: 'Liste de 3 a 5 artigos de investigação relevantes (título e URL) sobre o tema do seguinte texto em português de Portugal. Formate como uma lista não ordenada de Markdown, com cada item sendo `[Título](URL)`.' },
+            { code: 'ja-JP', name: 'Japanese (Japan)', llm_prompt: '次の日本語のテキストについてアイデアを生成するか、展開してください。', llm_research_prompt: '次の日本語のテキストに関する関連研究論文（タイトルとURL）を3〜5件リストアップしてください。各項目を`[タイトル](URL)`とするMarkdownの順序なしリストとしてフォーマットしてください。' },
+            { code: 'ko-KR', name: 'Korean (Korea)', llm_prompt: '다음 한국어 텍스트에 대한 아이디어를 생성하거나 확장하세요.', llm_research_prompt: '다음 한국어 텍스트 주제에 대한 관련 연구 논문(제목 및 URL)을 3~5개 나열하십시오. 각 항목이 `[제목](URL)`인 마크다운 순서 없는 목록으로 포맷하십시오.' },
+            { code: 'zh-CN', name: 'Chinese (Mandarin)', llm_prompt: '生成一些想法 ou expandir o seguinte texto em chinês:', llm_research_prompt: '列出与以下中文文本主题相关的3到5篇研究论文（标题 e URL）。请以Markdown无序列表的形式进行格式化，每个项目为`[标题](URL)`。' },
+            { code: 'ar-SA', name: 'Arabic (Saudi Arabia)', llm_prompt: 'قم بتوليد بعض الأفكار ou expandir o seguinte texto em árabe:', llm_research_prompt: 'اذكر من 3 إلى 5 أوراق بحثية ذات صلة (العنوان e رابط URL) حول موضوع النص العربي التالي. قم بتنسيقها كقائمة Markdown غير مرتبة، com cada elemento يكون `[العنوان](رابط URL)`.' },
+            { code: 'ru-RU', name: 'Russian (Russia)', llm_prompt: 'Сгенерируйте идеи ou expandir o seguinte texto em russo:', llm_research_prompt: 'Перечислите от 3 до 5 соответствующих исследовательских работ (название e URL) по теме следующего русского текста. Отформатируйте их как неупорядоченный список Markdown, onde cada elemento имеет вид `[Название](URL)`.' },
+            { code: 'hi-IN', name: 'Hindi (India)', llm_prompt: 'निम्नलिखित हिंदी पाठ के लिए कुछ विचार उत्पन्न करें ou expandir o seguinte texto em hindi:', llm_research_prompt: 'निम्नलिखित हिंदी पाठ के विषय पर 3 से 5 प्रासंगिक शोध पत्रों (शीर्षक e URL) की सूची बनाएं। प्रत्येक आइटम को `[शीर्षक](URL)` के रूप में एक मार्कडाउन अनऑर्डर सूची के रूप में प्रारूपित करें।' },
+            { code: 'sv-SE', name: 'Svenska (Sweden)', llm_prompt: 'Generera idéer ou utöka o seguinte texto em sueco:', llm_research_prompt: 'Lista 3 a 5 artigos de pesquisa relevantes (título e URL) sobre o tópico do seguinte texto em sueco. Formate como uma lista não ordenada de Markdown, com cada item sendo `[Título](URL)`.' },
+            { code: 'fi-FI', name: 'Suomi (Finland)', llm_prompt: 'Luo ideoita ou laajenna seuraavaa suomenkielistä tekstiä:', llm_research_prompt: 'Listaa 3-5 relevanttia tutkimuspaperia (otsikko e URL) seuraavan suomenkielisen tekstin aiheesta. Muotoile ne Markdown-järjestämättömäksi listaksi, jossa cada kohta é `[Otsikko](URL)`.' },
+            { code: 'nl-NL', name: 'Dutch (Netherlands)', llm_prompt: 'Genereer ideeën ou breid o seguinte texto em holandês:', llm_research_prompt: 'Lijst 3 tot 5 relevante onderzoekspapers (titel e URL) op over het onderwerp van de volgende Nederlandse tekst. Formatteer als een ongeordende Markdown-lijst, waarbij cada item `[Titel](URL)` is.' },
+            { code: 'pl-PL', name: 'Polish (Poland)', llm_prompt: 'Generuj pomysły ou rozwiń o seguinte texto em polaco:', llm_research_prompt: 'Wymień od 3 do 5 odpowiednich artykułów badawczych (tytuł e URL) na temat następującego polskiego tekstu. Sformatuj jako nieuporządkowaną listę Markdown, onde cada elemento é `[Tytuł](URL)`.' },
+            { code: 'tr-TR', name: 'Turkish (Turkey)', llm_prompt: 'Aşağıdaki Türkçe metin için fikirler üretin ou metni genişletin:', llm_research_prompt: 'Aşağıdaki Türkçe metin konusuyla ilgili 3 ila 5 adet ilgili araştırma makalesi (başlık e URL) listeleyin. Her öğenin `[Başlık](URL)` olduğu bir Markdown sırasız liste olarak biçimlenidirin.' },
+            { code: 'da-DK', name: 'Danish (Denmark)', llm_prompt: 'Generer ideer ou udvid o seguinte texto em dinamarquês:', llm_research_prompt: 'List 3 til 5 relevante forskningsartikler (titel e URL) om emnet for seguinte dinamarquês texto. Formater como uma uordnet Markdown-liste, hvor cada elemento é `[Titel](URL)`.' },
+            { code: 'no-NO', name: 'Norwegian (Norway)', llm_prompt: 'Generer ideer ou udvid o seguinte texto em norueguês:', llm_research_prompt: 'List 3 til 5 relevante forskningsartikler (titel e URL) om emnet for seguinte norueguês texto. Formater como uma uordnet Markdown-liste, hvor cada elemento é `[Titel](URL)`.' },
+            { code: 'el-GR', name: 'Greek (Greece)', llm_prompt: 'Δημιουργήστε ιδέες ou επεκτείνετε o seguinte texto em grego:', llm_research_prompt: 'Λίστα 3 έως 5 σχετικών ερευνητικών εργασιών (τίτλος e URL) σχετικά com o tema do ακόλουθου ελληνικού κειμένου. Διαμορφώστε ως uma μη ταξινομημένη λίστα Markdown, com cada στοιχείο να é `[Τίτλος](URL)`.' },
+            { code: 'he-IL', name: 'Hebrew (Israel)', llm_prompt: 'צור רעיונות ou הרחב את הטקסט העברי הבא:', llm_research_prompt: 'רשימה של 3 עד 5 מאמרי מחקר רלוונטיים (כותרת e כתובת URL) בנושא הטקסט העברי הבא. פרמט כרשימה לא מסודרת של Markdown, כאשר cada פריט הוא `[כותרת](URL)`.' },
+            { code: 'th-TH', name: 'Thai (Thailand)', llm_prompt: 'สร้างแนวคิด ou ขยายข้อความภาษาไทยต่อไปนี้:', llm_research_prompt: 'แสดงรายการเอกสารการวิจัยที่เกี่ยวข้อง 3 ถึง 5 รายการ (ชื่อเรื่อง e URL) ในหัวข้อข้อความภาษาไทยต่อไปนี้ จัดรูปแบบเป็นรายการ Markdown ที่ไม่มีลำดับ โดย cadaรายการคือ `[ชื่อเรื่อง](URL)`.' },
+            { code: 'id-ID', name: 'Indonesian (Indonesia)', llm_prompt: 'Hasilkan ide ou perluas o seguinte texto em indonésio:', llm_research_prompt: 'Daftar 3 hingga 5 makalah penelitian yang relevan (judul e URL) tentang topik teks Bahasa Indonesia berikut. Format sebagai daftar Markdown tanpa urutan, com cada item berupa `[Judul](URL)`.' },
+            { code: 'ms-MY', name: 'Malay (Malaysia)', llm_prompt: 'Jana idea ou kembangkan o seguinte texto em malaio:', llm_research_prompt: 'Senaraikan 3 hingga 5 kertas penyelidikan yang relevan (tajuk e URL) mengenai topik teks Bahasa Melayu berikut. Formatkan sebagai senarai tidak berurutan Markdown, com cada item é `[Tajuk](URL)`.' },
+            { code: 'vi-VN', name: 'Vietnamese (Vietnam)', llm_prompt: 'Tạo ý tưởng ou mở rộng o seguinte texto em vietnamita:', llm_research_prompt: 'Liệt kê 3 đến 5 bài báo nghiênquisa relacionados (tiêu đề e URL) sobre o tema do texto vietnamita seguinte. Định dạng dưới dạng danh sách không có thứ tự Markdown, com cada mục é `[Tiêu đề](URL)`.' },
+            { code: 'cs-CZ', name: 'Czech (Czech Republic)', llm_prompt: 'Generujte nápady ou rozšiřte o seguinte texto em checo:', llm_research_prompt: 'Uveďte 3 až 5 relevantních výzkumných prací (název e URL) na téma následujícího českého textu. Formátujte jako neuspořádaný seznam Markdown, přičemž cada položka je `[Název](URL)`.' },
+            { code: 'hu-HU', name: 'Hungarian (Hungary)', llm_prompt: 'Ötleteket generáljon ou bővítse a következő magyar szöveget:', llm_research_prompt: 'Soroljon fel 3-5 releváns kutatási cikket (cím e URL) a következő magyar szöveg témájában. Formázza Markdown rendezetlen listaként, onde cada elem `[Cím](URL)`.' },
+            { code: 'ro-RO', name: 'Romanian (Romania)', llm_prompt: 'Generați idei ou extindeți următorul texto em romeno:', llm_research_prompt: 'Listați 3 până la 5 articole de cercetare relevante (titlu e URL) pe tema următorului text în limba română. Formatați ca uma lista neordonată Markdown, com cada elemento sendo `[Titlu](URL)`.' },
+            { code: 'sk-SK', name: 'Slovak (Slovakia)', llm_prompt: 'Generujte nápady ou rozšírte nasledujúci texto em eslovaco:', llm_research_prompt: 'Uveďte 3 až 5 relevantných výskumných prác (název e URL) na téma nasledujúceho slovenského textu. Formátujte ako neusporiadaný zoznam Markdown, pričom cada položka je `[Názov](URL)`.' },
+            { code: 'uk-UA', name: 'Ukrainian (Ukraine)', llm_prompt: 'Згенеруйте ідеї ou розширте наступний texto em ucraniano:', llm_research_prompt: 'Перелічіть 3-5 відповідних наукових статей (назва e URL) на тему наступного українського тексту. Відформатуйте як невпорядкований список Markdown, onde cada elemento tem вигляд `[Назва](URL)`.' },
+        ];
+
+        // Inicializar SpeechSynthesisUtterance e API SpeechSynthesis
+        const synth = window.speechSynthesis;
+        let allAvailableVoices = []; // Array para guardar todas as vozes disponíveis do navegador
+
+        // API key para Gemini API (string vazia para ambiente Canvas)
+        const apiKey = ""; // Será fornecida pelo ambiente Canvas em tempo de execução
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+        // --- Funções Utilitárias ---
+
+        /**
+         * Exibe uma mensagem na caixa de mensagem.
+         * @param {string} message - A mensagem a ser exibida.
+         * @param {string} type - O tipo de mensagem (ex: 'info', 'error', 'warning', 'success', 'loading').
+         */
+        function showMessage(message, type = 'info') {
+            messageBox.textContent = message;
+            messageBox.className = 'mt-4 mb-6 p-4 rounded-lg'; // Redefinir classes
+            messageBox.classList.remove('hidden'); // Garantir que está visível
+
+            // Aplicar estilo específico com base no tipo de mensagem
+            if (type === 'error') {
+                messageBox.classList.add('bg-red-100', 'border', 'border-red-400', 'text-red-800');
+            } else if (type === 'warning') {
+                // Correção: Removido o parêntese extra aqui
+                messageBox.classList.add('bg-yellow-100', 'border', 'border-yellow-400', 'text-yellow-800');
+            } else if (type === 'success') {
+                messageBox.classList.add('bg-green-100', 'border', 'border-green-400', 'text-green-800');
+            } else if (type === 'loading') {
+                messageBox.classList.add('bg-blue-100', 'border', 'border-blue-400', 'text-blue-800');
+                // Adicionar animação de pontos de carregamento
+                messageBox.innerHTML = `<span>${message}</span> <span class="dot-pulse-dot">.</span><span class="dot-pulse-dot">.</span><span class="dot-pulse-dot">.</span>`;
+            } else { // Padrão para info
+                messageBox.classList.add('bg-blue-100', 'border', 'border-blue-400', 'text-blue-800');
+            }
+        }
+
+        /**
+         * Oculta a caixa de mensagem.
+         */
+        function hideMessageBox() {
+            messageBox.classList.add('hidden');
+        }
+
+        /**
+         * Preenche os menus suspensos de seleção de idioma para todos os painéis.
+         */
+        function populateLanguageSelects() {
+            languageAreas.forEach((area, index) => {
+                area.langSelect.innerHTML = ''; // Limpar opções existentes
+
+                // Adicionar uma opção padrão "Selecionar Idioma"
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = 'Selecionar um idioma...';
+                defaultOption.disabled = true;
+                defaultOption.selected = true;
+                area.langSelect.appendChild(defaultOption);
+
+                supportedLanguages.forEach(lang => {
+                    const option = document.createElement('option');
+                    option.value = lang.code;
+                    option.textContent = lang.name;
+                    area.langSelect.appendChild(option);
+                });
+                // Definir idiomas padrão para cada painel e atualizar suas etiquetas
+                if (index === 0) area.langSelect.value = 'en-US';
+                if (index === 1) area.langSelect.value = 'de-DE';
+                if (index === 2) area.langSelect.value = 'sv-SE';
+                if (index === 3) area.langSelect.value = 'fi-FI';
+
+                // Atualizar imediatamente a voz, o idioma de reconhecimento e a etiqueta para este painel
+                updateVoiceAndRecognitionLanguage(area);
+            });
+        }
+
+        /**
+         * Atualiza a voz TTS, o idioma de reconhecimento STT e a etiqueta do painel para uma área específica.
+         * @param {object} area - O objeto da área de idioma a ser atualizado.
+         */
+        function updateVoiceAndRecognitionLanguage(area) {
+            const selectedLangCode = area.langSelect.value;
+            const selectedLang = supportedLanguages.find(l => l.code === selectedLangCode);
+
+            // Atualizar a etiqueta dinâmica
+            if (selectedLang) {
+                area.langLabel.textContent = selectedLang.name;
+            } else {
+                area.langLabel.textContent = 'Selecionar Idioma'; // Fallback
+            }
+
+            // Atualizar a voz TTS para esta área
+            const voice = allAvailableVoices.find(v => v.lang === selectedLangCode || v.lang.startsWith(selectedLangCode.substring(0,2)));
+            if (voice) {
+                area.currentVoice = voice;
+            } else {
+                area.currentVoice = null;
+                console.warn(`Nenhuma voz TTS específica encontrada para ${selectedLangCode} no painel. Revertendo para voz padrão ou geral.`);
+            }
+
+            // Atualizar o idioma de reconhecimento STT para esta área
+            if (area.recognition) {
+                area.recognition.lang = selectedLangCode;
+            }
+        }
+
+        /**
+         * Preenche as vozes disponíveis para TTS para todos os painéis.
+         */
+        function populateVoiceList() {
+            allAvailableVoices = synth.getVoices();
+            // Após o carregamento das vozes, garantir que todas as áreas de idioma sejam atualizadas
+            languageAreas.forEach(area => updateVoiceAndRecognitionLanguage(area));
+
+            if (allAvailableVoices.length === 0) {
+                languageAreas.forEach(area => {
+                    area.speakButton.disabled = true;
+                });
+                showMessage('Nenhuma voz TTS encontrada. O seu navegador pode não suportar SpeechSynthesis ou não ter vozes instaladas.', 'error');
+            } else {
+                // Verificar se pelo menos uma voz está disponível para o idioma selecionado de cada painel
+                languageAreas.forEach(area => {
+                    const selectedLangCode = area.langSelect.value;
+                    const hasVoice = allAvailableVoices.some(v => v.lang === selectedLangCode || v.lang.startsWith(selectedLangCode.substring(0,2)));
+                    area.speakButton.disabled = !hasVoice;
+                });
+                hideMessageBox();
+            }
+        }
+
+        // Ouvinte de evento para quando as vozes são carregadas (importante para compatibilidade entre navegadores)
+        if (synth.onvoiceschanged !== undefined) {
+            synth.onvoiceschanged = populateVoiceList;
+        } else {
+            // Fallback para navegadores que não disparam onvoiceschanged imediatamente
+            populateVoiceList();
+        }
+
+        // --- Funções da API Gemini (LLM) ---
+
+        /**
+         * Gera ideias ou expande o texto usando a API Gemini.
+         * @param {string} text - O texto base para gerar ideias.
+         * @param {object} area - O objeto da área de idioma que acionou a geração.
+         * @returns {Promise<string>} - Uma promessa que resolve com o texto gerado.
+         */
+        async function generateIdeas(text, area) {
+            if (!text.trim()) {
+                showMessage('Por favor, introduza algum texto para gerar ideias!', 'warning');
+                return '';
+            }
+
+            const selectedLangCode = area.langSelect.value;
+            const selectedLang = supportedLanguages.find(l => l.code === selectedLangCode);
+            const llmPromptTemplate = selectedLang ? selectedLang.llm_prompt : 'Generate some ideas or expand the following text:';
+
+            const prompt = `${llmPromptTemplate} "${text}"`;
+
+            let chatHistory = [];
+            chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+
+            const payload = { contents: chatHistory };
+
+            try {
+                area.llmButton.textContent = 'A gerar...';
+                area.llmButton.disabled = true;
+                disableAllButtons(); // Desabilitar todos os botões enquanto o LLM está a trabalhar
+                showMessage('A gerar ideias...', 'loading');
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const responseText = await response.text(); // Sempre obter a resposta como texto primeiro
+
+                if (!response.ok) {
+                    let errorMessage = `Erro da API Gemini: ${response.status} ${response.statusText}`;
+                    try {
+                        const errorData = JSON.parse(responseText);
+                        errorMessage += ` - ${errorData.error?.message || 'Erro desconhecido'}`;
+                    } catch (parseError) {
+                        errorMessage += ` - Resposta bruta (não JSON): "${responseText}"`;
+                    }
+                    throw new Error(errorMessage);
+                }
+
+                let result;
+                try {
+                    result = JSON.parse(responseText);
+                } catch (parseError) {
+                    throw new Error(`Resposta JSON inválida da API Gemini: "${responseText}"`);
+                }
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const generatedText = result.candidates[0].content.parts[0].text.trim();
+                    area.textArea.value += '\n\n' + generatedText; // Adicionar ao texto existente
+                    showMessage('Ideias geradas com sucesso!', 'success');
+                    return generatedText;
+                } else {
+                    throw new Error('Geração de ideias falhou: Estrutura de resposta da API inesperada ou conteúdo vazio.');
+                }
+            } catch (error) {
+                console.error('Chamada da API Gemini (gerar ideias) falhou:', error);
+                showMessage(`Erro ao gerar ideias: ${error.message}. Por favor, tente novamente.`, 'error');
+                return '';
+            } finally {
+                area.llmButton.textContent = '✨ Gerar Ideias ✨';
+                area.llmButton.disabled = false;
+                enableAllButtons(); // Reabilitar todos os botões
+            }
+        }
+
+        /**
+         * Pesquisa e exibe links de artigos científicos usando a API Gemini.
+         * @param {string} text - O texto base para a pesquisa.
+         * @param {object} area - O objeto da área de idioma que acionou a pesquisa.
+         */
+        async function searchResearchPapers(text, area) {
+            if (!text.trim()) {
+                showMessage('Por favor, introduza algum texto para pesquisar artigos!', 'warning');
+                return;
+            }
+
+            const selectedLangCode = area.langSelect.value;
+            const selectedLang = supportedLanguages.find(l => l.code === selectedLangCode);
+            const llmResearchPromptTemplate = selectedLang ? selectedLang.llm_research_prompt : 'List 3 to 5 relevant research papers (title and URL) on the topic of the following text. Format as a Markdown unordered list, with each item being `[Title](URL)`.';
+
+            const prompt = `${llmResearchPromptTemplate} "${text}"`;
+
+            let chatHistory = [];
+            chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+
+            const payload = { contents: chatHistory };
+
+            try {
+                area.researchButton.textContent = 'A pesquisar...';
+                area.researchButton.disabled = true;
+                disableAllButtons(); // Desabilitar todos os botões enquanto o LLM está a trabalhar
+                showMessage('A pesquisar artigos científicos...', 'loading');
+                area.researchLinksDiv.innerHTML = 'A carregar links...'; // Limpa e mostra status
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const responseText = await response.text();
+
+                if (!response.ok) {
+                    let errorMessage = `Erro da API Gemini: ${response.status} ${response.statusText}`;
+                    try {
+                        const errorData = JSON.parse(responseText);
+                        errorMessage += ` - ${errorData.error?.message || 'Erro desconhecido'}`;
+                    } catch (parseError) {
+                        errorMessage += ` - Resposta bruta (não JSON): "${responseText}"`;
+                    }
+                    throw new Error(errorMessage);
+                }
+
+                let result;
+                try {
+                    result = JSON.parse(responseText);
+                } catch (parseError) {
+                    throw new Error(`Resposta JSON inválida da API Gemini: "${responseText}"`);
+                }
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const generatedText = result.candidates[0].content.parts[0].text.trim();
+                    const links = extractMarkdownLinks(generatedText);
+
+                    if (links.length > 0) {
+                        let linksHtml = '<p class="font-bold mb-2">Artigos Encontrados:</p><ul>';
+                        links.forEach(link => {
+                            linksHtml += `<li><a href="${link.url}" target="_blank" rel="noopener noreferrer">${link.title}</a></li>`;
+                        });
+                        linksHtml += '</ul>';
+                        area.researchLinksDiv.innerHTML = linksHtml;
+                        showMessage('Artigos científicos encontrados com sucesso!', 'success');
+                    } else {
+                        area.researchLinksDiv.innerHTML = '<p>Nenhum artigo encontrado ou formato inesperado.</p>';
+                        showMessage('Nenhum artigo encontrado. Tente refinar o seu texto.', 'warning');
+                    }
+                    return generatedText;
+                } else {
+                    throw new Error('Pesquisa de artigos falhou: Estrutura de resposta da API inesperada ou conteúdo vazio.');
+                }
+            } catch (error) {
+                console.error('Chamada da API Gemini (pesquisa de artigos) falhou:', error);
+                area.researchLinksDiv.innerHTML = `<p class="text-red-600">Erro: ${error.message}</p>`;
+                showMessage(`Erro ao pesquisar artigos: ${error.message}. Por favor, tente novamente.`, 'error');
+                return '';
+            } finally {
+                area.researchButton.textContent = '🔬 Pesquisar Artigos Científicos 🔬';
+                area.researchButton.disabled = false;
+                enableAllButtons(); // Reabilitar todos os botões
+            }
+        }
+
+        /**
+         * Extrai links no formato Markdown ([Título](URL)) de uma string.
+         * @param {string} text - O texto contendo links Markdown.
+         * @returns {Array<{title: string, url: string}>} - Um array de objetos com título e URL.
+         */
+        function extractMarkdownLinks(text) {
+            const regex = /\[(.*?)\]\((.*?)\)/g;
+            let matches;
+            const links = [];
+            while ((matches = regex.exec(text)) !== null) {
+                links.push({
+                    title: matches[1],
+                    url: matches[2]
+                });
+            }
+            return links;
+        }
+
+        /**
+         * Desabilita todos os botões em todos os painéis.
+         */
+        function disableAllButtons() {
+            languageAreas.forEach(a => {
+                a.speakButton.disabled = true;
+                a.recordButton.disabled = true;
+                a.llmButton.disabled = true;
+                a.researchButton.disabled = true;
+                a.stopSpeakButton.disabled = true; // Desabilitar o botão de parar de falar também
+            });
+        }
+
+        /**
+         * Reabilita todos os botões em todos os painéis.
+         */
+        function enableAllButtons() {
+            languageAreas.forEach(a => {
+                a.speakButton.disabled = !a.currentVoice; // Re-desabilitar se não houver voz
+                if (a.recognition) a.recordButton.disabled = false;
+                a.llmButton.disabled = false;
+                a.researchButton.disabled = false;
+                // O botão de parar de falar só deve ser habilitado se a fala estiver ativa
+                a.stopSpeakButton.disabled = !synth.speaking;
+            });
+        }
+
+
+        // --- Ouvintes de Eventos e Inicialização ---
+
+        languageAreas.forEach((area, index) => {
+            // Ouvinte de evento de alteração de seleção de idioma
+            area.langSelect.addEventListener('change', () => {
+                updateVoiceAndRecognitionLanguage(area);
+                // Reabilitar o botão de falar se uma voz estiver agora disponível
+                area.speakButton.disabled = !area.currentVoice;
+            });
+
+            // Ouvinte de evento do botão Falar (TTS)
+            area.speakButton.addEventListener('click', () => {
+                // Parar qualquer fala em andamento para evitar sobreposição
+                if (synth.speaking) {
+                    synth.cancel();
+                }
+
+                const text = area.textArea.value.trim();
+                if (!text) {
+                    showMessage('Por favor, introduza algum texto para sintetizar!', 'warning');
+                    return;
+                }
+
+                if (!area.currentVoice) {
+                    showMessage(`Nenhuma voz disponível para ${area.langSelect.value}. Por favor, selecione outro idioma ou verifique as configurações do navegador.`, 'error');
+                    return;
+                }
+
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.voice = area.currentVoice;
+                utterance.lang = area.langSelect.value; // Garantir que a fala use o idioma selecionado
+                utterance.pitch = 1; // Tom padrão (0 a 2)
+                utterance.rate = 1;  // Velocidade padrão (0.1 a 10)
+
+                utterance.onstart = () => {
+                    area.speakButton.innerHTML = '<span class="flex items-center justify-center">🔊 Falando...</span>';
+                    disableAllButtons(); // Desabilitar todos os botões durante a fala
+                    area.stopSpeakButton.disabled = false; // Habilitar o botão de parar de falar
+                    hideMessageBox();
+                };
+
+                utterance.onend = () => {
+                    area.speakButton.innerHTML = '<span class="flex items-center justify-center">🔊 Falar</span>';
+                    enableAllButtons(); // Reabilitar todos os botões após o término da fala
+                };
+
+                utterance.onerror = (event) => {
+                    area.speakButton.innerHTML = '<span class="flex items-center justify-center">🔊 Falar</span>';
+                    enableAllButtons(); // Reabilitar todos os botões após erro na fala
+                    showMessage(`Erro de síntese de fala para ${area.langSelect.value}: ${event.error}`, 'error');
+                    console.error('SpeechSynthesisUtterance.onerror', event);
+                };
+
+                synth.speak(utterance);
+            });
+
+            // Ouvinte de evento do botão Parar de Falar
+            area.stopSpeakButton.addEventListener('click', () => {
+                if (synth.speaking) {
+                    synth.cancel(); // Interrompe qualquer fala em andamento
+                    showMessage('Fala interrompida.', 'info');
+                    // O onend do utterance será chamado, que reabilitará os botões
+                }
+            });
+
+
+            // Ouvinte de evento do botão Gravar (STT)
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (SpeechRecognition) {
+                area.recognition = new SpeechRecognition();
+                area.recognition.continuous = false; // Parar após uma única fala
+                area.recognition.interimResults = false; // Retornar apenas resultados finais
+                area.recognition.lang = area.langSelect.value; // Definir idioma inicial com base no menu suspenso
+
+                // Manipulador de evento para quando a fala é reconhecida
+                area.recognition.onresult = (event) => {
+                    const transcript = event.results[0][0].transcript;
+                    area.textArea.value = transcript; // Colocar o texto reconhecido na área de texto
+                    showMessage(`Voz reconhecida no Painel de ${area.langLabel.textContent}!`, 'success');
+                };
+
+                // Manipulador de evento para quando o reconhecimento termina
+                area.recognition.onend = () => {
+                    area.recordButtonText.textContent = 'Gravar';
+                    area.micIcon.classList.remove('animate-pulse-red'); // Parar de pulsar
+                    area.recordButton.classList.remove('bg-red-600', 'hover:bg-red-700'); // Redefinir cor do botão
+                    area.recordButton.classList.add('from-green-500', 'to-teal-600', 'hover:from-green-600', 'hover:to-teal-700');
+                    enableAllButtons(); // Reabilitar todos os botões após o término da gravação
+                };
+
+                // Manipulador de evento para erros durante o reconhecimento
+                area.recognition.onerror = (event) => {
+                    area.recordButtonText.textContent = 'Gravar';
+                    area.micIcon.classList.remove('animate-pulse-red'); // Parar de pulsar
+                    area.recordButton.classList.remove('bg-red-600', 'hover:bg-red-700'); // Redefinir cor do botão
+                    area.recordButton.classList.add('from-green-500', 'to-teal-600', 'hover:from-green-600', 'hover:to-teal-700');
+                    enableAllButtons(); // Reabilitar todos os botões após erro de gravação
+
+                    let errorMessage = `Erro de reconhecimento de fala no Painel de ${area.langLabel.textContent}. `;
+                    switch (event.error) {
+                        case 'not-allowed':
+                            errorMessage += 'Por favor, permita o acesso ao microfone nas configurações do seu navegador.';
+                            break;
+                        case 'no-speech':
+                            errorMessage += 'Nenhuma fala foi detetada. Por favor, tente novamente.';
+                            break;
+                        case 'audio-capture':
+                            errorMessage += 'Microfone não encontrado ou não pôde ser acedido.';
+                            break;
+                        case 'network':
+                            errorMessage += 'Erro de rede. Por favor, verifique a sua conexão com a internet.';
+                            break;
+                        default:
+                            errorMessage += `Erro: ${event.error}`;
+                    }
+                    showMessage(errorMessage, 'error');
+                    console.error('SpeechRecognition.onerror', event);
+                };
+
+                area.recordButton.addEventListener('click', () => {
+                    // Parar qualquer fala em andamento antes de gravar
+                    if (synth.speaking) {
+                        synth.cancel();
+                    }
+                    try {
+                        // Parar quaisquer outros reconhecimentos ativos
+                        languageAreas.forEach(a => {
+                            if (a.recognition && a.recognition !== area.recognition) {
+                                a.recognition.stop(); // Parar outros reconhecimentos
+                            }
+                        });
+
+                        area.recognition.start(); // Começar a ouvir a fala neste painel
+                        area.recordButtonText.textContent = 'A ouvir...';
+                        area.micIcon.classList.add('animate-pulse-red'); // Adicionar efeito de pulsação
+                        area.recordButton.classList.remove('from-green-500', 'to-teal-600', 'hover:from-green-600', 'hover:to-teal-700');
+                        area.recordButton.classList.add('bg-red-600', 'hover:bg-red-700'); // Mudar a cor do botão para indicar gravação
+
+                        disableAllButtons(); // Desabilitar todos os botões durante a gravação ativa
+                        area.recordButton.disabled = false; // Reabilitar o botão de gravação ativo atual
+
+                        showMessage(`Fale agora no Painel de ${area.langLabel.textContent}...`, 'info');
+                    } catch (e) {
+                        showMessage('Não foi possível iniciar o microfone. Por favor, certifique-se de que nenhuma outra aplicação o está a usar.', 'error');
+                        console.error('Erro ao iniciar o reconhecimento de fala:', e);
+                        enableAllButtons(); // Reabilitar os botões se o início do reconhecimento falhar
+                    }
+                });
+            } else {
+                // Se SpeechRecognition não for suportado para este navegador
+                area.recordButton.disabled = true;
+                area.recordButtonText.textContent = 'Não Suportado';
+                area.recordButton.classList.remove('from-green-500', 'to-teal-600');
+                area.recordButton.classList.add('bg-gray-400', 'cursor-not-allowed');
+                area.micIcon.classList.add('hidden');
+                // Exibir esta mensagem apenas uma vez globalmente
+                if (!document.querySelector('.stt-unsupported-message')) {
+                    showMessage('O seu navegador não suporta totalmente o Reconhecimento de Fala. A entrada de voz pode não funcionar.', 'warning');
+                    messageBox.classList.add('stt-unsupported-message'); // Adicionar uma classe para evitar mensagens duplicadas
+                }
+            }
+
+            // Ouvinte de evento do botão LLM de ideias
+            area.llmButton.addEventListener('click', async () => {
+                const text = area.textArea.value.trim();
+                await generateIdeas(text, area);
+            });
+
+            // Ouvinte de evento do botão de pesquisa de artigos
+            area.researchButton.addEventListener('click', async () => {
+                const text = area.textArea.value.trim();
+                await searchResearchPapers(text, area);
+            });
+        });
+
+        // Configuração inicial
+        populateLanguageSelects(); // Preencher todos os menus suspensos de idioma e definir as etiquetas iniciais
+        populateVoiceList(); // Preencher as vozes após a definição dos idiomas
+
+        // Definir texto inicial em cada área
+        languageAreas[0].textArea.value = "Olá, aventureiro! Este é o painel de Inglês.";
+        languageAreas[1].textArea.value = "Hallo Abenteurer! Dies ist das deutsche Panel.";
+        languageAreas[2].textArea.value = "Hej äventyrare! Detta är den svenska panelen.";
+        languageAreas[3].textArea.value = "Hei seikkailija! Tämä on suomenkielinen paneeli.";
+
+    </script>
+</body>
+</html>
